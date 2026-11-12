@@ -61,3 +61,5 @@ Our vision is to create an OS that is:
 The freedom of Linux. The familiarity of Windows. The power of gaming.
 
 NovaWin – Your system, your rules.
+
+For more informations or questions you can ask in github directly or on our community server on discord : " https://discord.gg/4W5hp4wyDw "
