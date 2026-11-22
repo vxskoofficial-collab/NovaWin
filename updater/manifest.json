@@ -2,11 +2,11 @@
 {
   "schema": 1,
   "channel": "DEV",
-  "version": "0.1.1-dev",
+  "version": "0.1.2-dev",
   "files": [
     {
       "path": "welcome.txt",
-      "url": "https://raw.githubusercontent.com/vxskoofficial-collab/NovaWin/DEV/updater/payload/welcome.txt",
+      "source": "updater/payload/welcome.txt",
       "sha256": "229939365e1520501cb728dc22a042fdc129913fdbaf5b8cb381b1d086a60460"
     }
   ]
