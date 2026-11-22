@@ -7,7 +7,7 @@
     {
       "path": "welcome.txt",
       "source": "updater/payload/welcome.txt",
-      "sha256": "01c7d17acb673b8d4a4694368ab2ef5b87568fc28fcdf04d6190407aa3cebac2"
+      "sha256": "40cd82ee64111034bf17415139ce4b775f27ca903f060427d71654cf800191a3"
     }
   ]
 }
