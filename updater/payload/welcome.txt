@@ -1,0 +1,2 @@
+Welcome to NovaWin STABLE.
+Official NovaWin release.
