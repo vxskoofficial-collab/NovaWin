@@ -1,6 +1,13 @@
+
 {
   "schema": 1,
   "channel": "STABLE",
-  "version": "0.1.0",
-  "files": []
+  "version": "0.1.1",
+  "files": [
+    {
+      "path": "welcome.txt",
+      "url": "https://raw.githubusercontent.com/vxskoofficial-collab/NovaWin/STABLE/updater/payload/welcome.txt",
+      "sha256": "01c7d17acb673b8d4a4694368ab2ef5b87568fc28fcdf04d6190407aa3cebac2"
+    }
+  ]
 }
