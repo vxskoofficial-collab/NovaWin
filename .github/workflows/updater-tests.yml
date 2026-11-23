@@ -1,0 +1,36 @@
+
+name: NovaWin Updater DEV Tests
+
+on:
+  push:
+    branches:
+      - DEV
+    paths:
+      - "updater/**"
+      - ".github/workflows/updater-tests.yml"
+  pull_request:
+    branches:
+      - DEV
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check Python syntax
+        run: |
+          python -m py_compile updater/helper.py
+          python -m py_compile updater/app.py
+          python -m py_compile updater/test_helper.py
+
+      - name: Run updater tests
+        run: |
+          python -m unittest discover -s updater -p "test_*.py" -v
