@@ -1,5 +1,8 @@
 
 #!/usr/bin/env bash
+# NovaWin Updater 0.7.0 DEV
+# Ubuntu 24.04
+
 set -Eeuo pipefail
 
 VERSION="0.7.0-dev"
@@ -10,27 +13,45 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-for file in app.py helper.py; do
+echo "Préparation de NovaWin Updater $VERSION..."
+
+for file in app.py helper.py test_helper.py; do
     if [[ ! -f "$SCRIPT_DIR/$file" ]]; then
-        echo "Fichier manquant : $file"
+        echo "ERREUR : fichier manquant : $file"
         exit 1
     fi
 done
 
-echo "Installation NovaWin Updater $VERSION"
+echo "Vérification de la syntaxe Python..."
 
-python3 -m py_compile "$SCRIPT_DIR/app.py" "$SCRIPT_DIR/helper.py"
+python3 -m py_compile \
+    "$SCRIPT_DIR/app.py" \
+    "$SCRIPT_DIR/helper.py" \
+    "$SCRIPT_DIR/test_helper.py"
+
+echo "Vérification des dépendances..."
+
+if ! python3 -c "import gi" 2>/dev/null; then
+    echo "Installation de python3-gi..."
+    apt-get update
+    apt-get install -y python3-gi gir1.2-gtk-4.0 policykit-1
+fi
+
+python3 -c "import gi; gi.require_version('Gtk', '4.0'); from gi.repository import Gtk"
 
 BACKUP="/var/backups/novawin-updater-before-0.7.0-$(date +%Y%m%d-%H%M%S)"
-mkdir -m 700 -p "$BACKUP"
 
-for path in \
-    /opt/novawin-updater \
-    /usr/local/bin/novawin-updater \
-    /usr/local/bin/novawin-updater-helper \
-    /usr/local/share/novawin-updater \
+TARGETS=(
+    /opt/novawin-updater
+    /usr/local/share/novawin-updater
+    /usr/local/bin/novawin-updater
     /usr/share/applications/novawin-updater.desktop
-do
+)
+
+echo "Création de la sauvegarde..."
+install -d -o root -g root -m 700 "$BACKUP"
+
+for path in "${TARGETS[@]}"; do
     if [[ -e "$path" || -L "$path" ]]; then
         mkdir -p "$BACKUP$(dirname "$path")"
         cp -a -- "$path" "$BACKUP$path"
@@ -38,10 +59,42 @@ do
 done
 
 TEMP="$(mktemp -d)"
-cleanup() {
-    rm -rf "$TEMP"
+ROLLBACK_NEEDED=0
+
+restore_backup() {
+    local path
+
+    echo
+    echo "ERREUR : restauration de la sauvegarde..."
+
+    for path in "${TARGETS[@]}"; do
+        rm -rf -- "$path"
+
+        if [[ -e "$BACKUP$path" || -L "$BACKUP$path" ]]; then
+            mkdir -p "$(dirname "$path")"
+            cp -a -- "$BACKUP$path" "$path"
+        fi
+    done
+
+    echo "Restauration terminée."
 }
+
+cleanup() {
+    local status=$?
+
+    if [[ $status -ne 0 && $ROLLBACK_NEEDED -eq 1 ]]; then
+        restore_backup
+    fi
+
+    rm -rf -- "$TEMP"
+    exit "$status"
+}
+
 trap cleanup EXIT
+
+ROLLBACK_NEEDED=1
+
+echo "Installation des répertoires..."
 
 install -d -o root -g root -m 755 \
     /opt/novawin-updater \
@@ -50,23 +103,28 @@ install -d -o root -g root -m 755 \
     /var/lib/novawin-updater \
     /usr/share/applications
 
+echo "Installation du moteur..."
+
 install -o root -g root -m 755 \
     "$SCRIPT_DIR/helper.py" \
     /opt/novawin-updater/helper.py
+
+echo "Installation de l'interface..."
 
 install -o root -g root -m 755 \
     "$SCRIPT_DIR/app.py" \
     /usr/local/share/novawin-updater/app.py
 
-cat > /usr/local/bin/novawin-updater <<'EOF'
+cat > "$TEMP/novawin-updater" <<'EOF'
 #!/bin/sh
 exec /usr/bin/python3 /usr/local/share/novawin-updater/app.py "$@"
 EOF
 
-chmod 755 /usr/local/bin/novawin-updater
-chown root:root /usr/local/bin/novawin-updater
+install -o root -g root -m 755 \
+    "$TEMP/novawin-updater" \
+    /usr/local/bin/novawin-updater
 
-cat > /usr/share/applications/novawin-updater.desktop <<'EOF'
+cat > "$TEMP/novawin-updater.desktop" <<'EOF'
 [Desktop Entry]
 Type=Application
 Name=NovaWin Updater
@@ -77,7 +135,11 @@ Terminal=false
 Categories=System;Settings;
 EOF
 
-chmod 644 /usr/share/applications/novawin-updater.desktop
+install -o root -g root -m 644 \
+    "$TEMP/novawin-updater.desktop" \
+    /usr/share/applications/novawin-updater.desktop
+
+echo "Vérification de l'installation..."
 
 python3 -m py_compile \
     /opt/novawin-updater/helper.py \
@@ -91,3 +153,7 @@ echo
 echo "NovaWin Updater $VERSION installé."
 echo "Sauvegarde : $BACKUP"
 echo "Lancement : novawin-updater"
+
+ROLLBACK_NEEDED=0
+trap - EXIT
+rm -rf -- "$TEMP"
