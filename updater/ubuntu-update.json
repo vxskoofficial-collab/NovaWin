@@ -1,1 +1,15 @@
-
+{
+  "feature": "ubuntu-system-updates",
+  "enabled": true,
+  "distribution": "ubuntu",
+  "release": "24.04",
+  "architecture": "amd64",
+  "operations": {
+    "refresh": "apt-get update",
+    "simulate": "apt-get -s full-upgrade",
+    "install": "apt-get full-upgrade"
+  },
+  "require_confirmation": true,
+  "allow_autoremove": false,
+  "detect_reboot_required": true
+}
