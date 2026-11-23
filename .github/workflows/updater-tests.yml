@@ -8,12 +8,14 @@ on:
     paths:
       - "updater/**"
       - ".github/workflows/updater-tests.yml"
+
   pull_request:
     branches:
       - DEV
 
 jobs:
   test:
+    name: Validate NovaWin Updater
     runs-on: ubuntu-24.04
 
     steps:
@@ -31,6 +33,18 @@ jobs:
           python -m py_compile updater/app.py
           python -m py_compile updater/test_helper.py
 
+      - name: Check installer Bash syntax
+        run: |
+          bash -n updater/install.sh
+
       - name: Run updater tests
         run: |
           python -m unittest discover -s updater -p "test_*.py" -v
+
+      - name: Check required files
+        run: |
+          test -f updater/helper.py
+          test -f updater/app.py
+          test -f updater/install.sh
+          test -f updater/test_helper.py
+          test -f updater/ubuntu-update.json
