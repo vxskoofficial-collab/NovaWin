@@ -1,13 +1,13 @@
 {
   "schema": 3,
   "channel": "DEV",
-  "version": "0.5.0-dev.1",
+  "version": "0.6.0-dev.1",
   "release_notes": "Première synchronisation miroir NovaWin DEV",
   "sync": {
     "source": "deploy",
     "delete_removed_files": true
   },
   "apt": {
-    "full_upgrade": false
+    "full_upgrade": true
   }
 }
