@@ -1,7 +1,5 @@
 
 #!/usr/bin/env python3
-# NovaWin Updater 0.7.0 DEV
-# Tests statiques du moteur Ubuntu
 
 import ast
 import pathlib
@@ -21,26 +19,34 @@ class HelperTests(unittest.TestCase):
     def test_python_syntax(self):
         self.assertIsNotNone(self.tree)
 
-    def test_required_actions_exist(self):
+    def test_required_functions(self):
         names = {
             node.name
             for node in ast.walk(self.tree)
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            if isinstance(node, ast.FunctionDef)
         }
         for name in ("refresh", "simulate", "install", "main"):
             self.assertIn(name, names)
 
-    def test_no_autoremove(self):
+    def test_apt_update_exists(self):
+        self.assertIn('"update"', self.source)
+
+    def test_full_upgrade_simulation_exists(self):
+        self.assertIn('"apt-get", "-s", "full-upgrade"', self.source)
+
+    def test_full_upgrade_install_exists(self):
+        self.assertIn('"apt-get", "full-upgrade", "-y"', self.source)
+
+    def test_autoremove_is_not_used(self):
         self.assertNotIn("autoremove", self.source)
 
-    def test_simulation_uses_full_upgrade(self):
-        self.assertIn('"full-upgrade"', self.source)
-        self.assertIn('" -s "', self.source.replace(" ", "")) if False else None
+    def test_removals_are_checked(self):
+        self.assertIn("if removals:", self.source)
 
     def test_reboot_detection_exists(self):
         self.assertIn("/var/run/reboot-required", self.source)
 
-    def test_no_shell_execution(self):
+    def test_shell_true_is_not_used(self):
         self.assertNotIn("shell=True", self.source)
 
 
