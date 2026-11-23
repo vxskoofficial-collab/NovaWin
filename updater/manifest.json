@@ -8,6 +8,6 @@
     "delete_removed_files": true
   },
   "apt": {
-    "full_upgrade": true
+    "full_upgrade": false
   }
 }
